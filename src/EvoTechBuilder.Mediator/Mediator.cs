@@ -1,3 +1,5 @@
+using System.Runtime.ExceptionServices;
+
 using EvoTechBuilder.Mediator.Abstractions.Contracts;
 using EvoTechBuilder.Mediator.Internal;
 
@@ -20,8 +22,9 @@ public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
         var handlers = serviceProvider
             .GetServices<INotificationHandler<TNotification>>()
             .ToArray();
-            
-        if (handlers.Length == 0) {
+
+        if (handlers.Length == 0)
+        {
             throw new InvalidOperationException(
                 $"No notification handlers registered for '{typeof(TNotification).FullName}'"
             );
@@ -44,7 +47,7 @@ public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
         {
             if (task.Exception is { } aggreateException)
             {
-                throw aggreateException;
+                ExceptionDispatchInfo.Capture(aggreateException).Throw();
             }
 
             throw;
