@@ -1,5 +1,8 @@
-﻿using EvoTechBuilder.Mediator;
+﻿
+using EvoTechBuilder.Mediator;
 using EvoTechBuilder.Mediator.Abstractions.Contracts;
+using EvoTechBuilder.Mediator.Abstractions.Enums;
+using EvoTechBuilder.Mediator.Abstractions.Options;
 using EvoTechBuilder.Mediator.Playground;
 using EvoTechBuilder.Mediator.Playground.Behaviors;
 using EvoTechBuilder.Mediator.Playground.Handlers;
@@ -7,16 +10,23 @@ using EvoTechBuilder.Mediator.Playground.Notifications;
 using EvoTechBuilder.Mediator.Playground.Request;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 var services = new ServiceCollection();
 
-// services.AddTransient<
-//     INotificationHandler<CustomerCreatedNotification>,
-//     SendWelcomeEmailHandler>();
+services.AddSingleton<IOptions<MediatorOptions>>(
+    Options.Create(new MediatorOptions
+    {
+        NotificationExecution = NotificationExecution.Sequential
+    }));
 
-// services.AddTransient<
-//     INotificationHandler<CustomerCreatedNotification>,
-//     UpdateCustomerStatisticsHandler>();
+services.AddTransient<
+    INotificationHandler<CustomerCreatedNotification>,
+    SendWelcomeEmailHandler>();
+
+services.AddTransient<
+    INotificationHandler<CustomerCreatedNotification>,
+    UpdateCustomerStatisticsHandler>();
 
 services.AddTransient<IRequestHandler<GetCustomerQuery, Customer>, GetCustomerHandler>()
     .AddTransient<ISender, Mediator>()
@@ -61,7 +71,8 @@ try
 }
 catch (InvalidOperationException exception)
 {
-    Console.WriteLine($"[Publisher] Configuration error: {exception.Message}");
+    Console.WriteLine(
+        $"[Publisher] Configuration error: {exception.Message}");
 }
 catch (AggregateException exception)
 {

@@ -1,9 +1,12 @@
 using System.Runtime.ExceptionServices;
 
 using EvoTechBuilder.Mediator.Abstractions.Contracts;
+using EvoTechBuilder.Mediator.Abstractions.Enums;
+using EvoTechBuilder.Mediator.Abstractions.Options;
 using EvoTechBuilder.Mediator.Internal;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace EvoTechBuilder.Mediator;
 
@@ -11,10 +14,17 @@ namespace EvoTechBuilder.Mediator;
 /// Provides the implementation for sending requests
 /// and publishing notifications.
 /// </summary>
-public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
+public class Mediator(
+    IServiceProvider serviceProvider,
+    IOptions<MediatorOptions> options) : ISender, IPublisher
 {
+    private readonly MediatorOptions _options = options.Value;
+
     /// <inheritdoc />
-    public async ValueTask Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification
+    public async ValueTask Publish<TNotification>(
+        TNotification notification,
+        CancellationToken cancellationToken = default)
+        where TNotification : INotification
     {
         ArgumentNullException.ThrowIfNull(notification);
         cancellationToken.ThrowIfCancellationRequested();
@@ -26,16 +36,25 @@ public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
         if (handlers.Length == 0)
         {
             throw new InvalidOperationException(
-                $"No notification handlers registered for '{typeof(TNotification).FullName}'"
-            );
+                $"No notification handlers registered for '{typeof(TNotification).FullName}'.");
+        }
+
+        if (_options.NotificationExecution == NotificationExecution.Sequential)
+        {
+            await PublishSequentially(
+                handlers,
+                notification,
+                cancellationToken);
+
+            return;
         }
 
         var tasks = handlers
-        .Select(handler => InvokeHandler(
-            handler,
-            notification,
-            cancellationToken))
-        .ToArray();
+            .Select(handler => InvokeHandler(
+                handler,
+                notification,
+                cancellationToken))
+            .ToArray();
 
         var task = Task.WhenAll(tasks);
 
@@ -45,9 +64,11 @@ public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
         }
         catch
         {
-            if (task.Exception is { } aggreateException)
+            if (task.Exception is { } aggregateException)
             {
-                ExceptionDispatchInfo.Capture(aggreateException).Throw();
+                ExceptionDispatchInfo
+                    .Capture(aggregateException)
+                    .Throw();
             }
 
             throw;
@@ -91,6 +112,39 @@ public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
     }
 
     #region Private Methods
+    private static async ValueTask PublishSequentially<TNotification>(
+        IEnumerable<INotificationHandler<TNotification>> handlers,
+        TNotification notification,
+        CancellationToken cancellationToken)
+        where TNotification : INotification
+    {
+        List<Exception> exceptions = [];
+
+        foreach (var handler in handlers)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                await handler.Handle(notification, cancellationToken);
+            }
+            catch (OperationCanceledException)
+                when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                exceptions.Add(exception);
+            }
+        }
+
+        if (exceptions.Count > 0)
+        {
+            throw new AggregateException(exceptions);
+        }
+    }
+
     private static async Task InvokeHandler<TNotification>(
         INotificationHandler<TNotification> handler,
         TNotification notification,
