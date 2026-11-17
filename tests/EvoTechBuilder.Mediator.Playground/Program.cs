@@ -59,7 +59,11 @@ try
 
     Console.WriteLine("[Publisher] Completed");
 }
-catch (Exception exception)
+catch (AggregateException exception)
 {
-    Console.WriteLine($"[Publisher] Failed: {exception.Message}");
+    foreach (var innerException in exception.InnerExceptions)
+    {
+        Console.WriteLine(
+            $"[Publisher] Handler failed: {innerException.Message}");
+    }
 }

@@ -12,7 +12,7 @@ namespace EvoTechBuilder.Mediator;
 public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
 {
     /// <inheritdoc />
-    public ValueTask Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification
+    public async ValueTask Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification
     {
         ArgumentNullException.ThrowIfNull(notification);
         cancellationToken.ThrowIfCancellationRequested();
@@ -27,8 +27,22 @@ public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
             notification,
             cancellationToken))
         .ToArray();
-        
-        return new ValueTask(Task.WhenAll(tasks));
+
+        var task = Task.WhenAll(tasks);
+
+        try
+        {
+            await task;
+        }
+        catch
+        {
+            if (task.Exception is { } aggreateException)
+            {
+                throw aggreateException;
+            }
+
+            throw;
+        }
     }
 
     /// <inheritdoc />
@@ -66,7 +80,7 @@ public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
             serviceProvider,
             cancellationToken);
     }
-    
+
     #region Private Methods
     private static async Task InvokeHandler<TNotification>(
         INotificationHandler<TNotification> handler,
