@@ -1,8 +1,7 @@
-﻿
-using EvoTechBuilder.Mediator;
+﻿using EvoTechBuilder.Mediator;
 using EvoTechBuilder.Mediator.Abstractions.Contracts;
 using EvoTechBuilder.Mediator.Abstractions.Enums;
-using EvoTechBuilder.Mediator.Abstractions.Options;
+using EvoTechBuilder.Mediator.DependencyInjection;
 using EvoTechBuilder.Mediator.Playground;
 using EvoTechBuilder.Mediator.Playground.Behaviors;
 using EvoTechBuilder.Mediator.Playground.Handlers;
@@ -10,16 +9,21 @@ using EvoTechBuilder.Mediator.Playground.Notifications;
 using EvoTechBuilder.Mediator.Playground.Request;
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 var services = new ServiceCollection();
 
-services.AddSingleton<IOptions<MediatorOptions>>(
-    Options.Create(new MediatorOptions
-    {
-        NotificationExecution = NotificationExecution.Parallel,
-        MaxConcurrentHandlers = 10
-    }));
+services.AddMediator(options =>
+{
+    options.MaxConcurrentHandlers = 1;
+});
+
+services.AddTransient<
+    IRequestHandler<GetCustomerQuery, Customer>,
+    GetCustomerHandler>();
+
+services.AddTransient<
+    IRequestHandler<CreateCustomerCommand>,
+    CreateCustomerHandler>();
 
 services.AddTransient<
     INotificationHandler<CustomerCreatedNotification>,
@@ -29,16 +33,31 @@ services.AddTransient<
     INotificationHandler<CustomerCreatedNotification>,
     UpdateCustomerStatisticsHandler>();
 
-services.AddTransient<IRequestHandler<GetCustomerQuery, Customer>, GetCustomerHandler>()
-    .AddTransient<ISender, Mediator>()
-    .AddTransient<IPublisher, Mediator>()
-    .AddTransient<IRequestHandler<CreateCustomerCommand>, CreateCustomerHandler>()
-    .AddTransient(typeof(IPipelineBehavior<>), typeof(LoggingBehavior<>))
-    .AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+services.AddTransient(
+    typeof(IPipelineBehavior<>),
+    typeof(LoggingBehavior<>));
 
-var serviceProvider = services.BuildServiceProvider();
+services.AddTransient(
+    typeof(IPipelineBehavior<,>),
+    typeof(LoggingBehavior<,>));
 
-var sender = serviceProvider.GetRequiredService<ISender>();
+using var serviceProvider = services.BuildServiceProvider(
+    new ServiceProviderOptions
+    {
+        ValidateScopes = true,
+        ValidateOnBuild = true
+    });
+
+using var scope = serviceProvider.CreateScope();
+
+var scopedProvider = scope.ServiceProvider;
+
+var mediator = scopedProvider.GetRequiredService<Mediator>();
+var sender = scopedProvider.GetRequiredService<ISender>();
+var publisher = scopedProvider.GetRequiredService<IPublisher>();
+
+Console.WriteLine($"Same sender instance: {ReferenceEquals(mediator, sender)}");
+Console.WriteLine($"Same publisher instance: {ReferenceEquals(mediator, publisher)}");
 
 using var cancellationTokenSource = new CancellationTokenSource();
 
@@ -61,8 +80,6 @@ catch (OperationCanceledException)
     Console.WriteLine("Request cancelled.");
 }
 
-var publisher = serviceProvider.GetRequiredService<IPublisher>();
-
 try
 {
     await publisher.Publish(
@@ -82,27 +99,4 @@ catch (AggregateException exception)
         Console.WriteLine(
             $"[Publisher] Handler failed: {innerException.Message}");
     }
-}
-var validator = new MediatorOptionsValidator();
-
-var validOptions = new MediatorOptions
-{
-    NotificationExecution = NotificationExecution.Parallel,
-    MaxConcurrentHandlers = 5
-};
-
-var invalidOptions = new MediatorOptions
-{
-    NotificationExecution = (NotificationExecution)999
-};
-
-var validResult = validator.Validate(null, validOptions);
-var invalidResult = validator.Validate(null, invalidOptions);
-
-Console.WriteLine($"Valid: {validResult.Succeeded}");
-Console.WriteLine($"Invalid: {invalidResult.Succeeded}");
-
-foreach (var failure in invalidResult.Failures ?? [])
-{
-    Console.WriteLine(failure);
 }

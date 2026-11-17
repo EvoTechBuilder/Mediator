@@ -1,2 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\EvoTechBuilder.Mediator\EvoTechBuilder.Mediator.csproj" />
+    <ProjectReference Include="..\EvoTechBuilder.Mediator.Abstractions\EvoTechBuilder.Mediator.Abstractions.csproj" />
+  </ItemGroup>
 </Project>

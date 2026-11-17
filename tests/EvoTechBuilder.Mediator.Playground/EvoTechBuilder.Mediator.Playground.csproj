@@ -7,6 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\EvoTechBuilder.Mediator\EvoTechBuilder.Mediator.csproj" />
     <ProjectReference Include="..\..\src\EvoTechBuilder.Mediator.Abstractions\EvoTechBuilder.Mediator.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\EvoTechBuilder.Mediator.DependencyInjection\EvoTechBuilder.Mediator.DependencyInjection.csproj" />
   </ItemGroup>
 
   <ItemGroup>
