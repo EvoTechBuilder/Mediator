@@ -3,14 +3,24 @@ using EvoTechBuilder.Mediator.Abstractions.Contracts;
 using EvoTechBuilder.Mediator.Playground;
 using EvoTechBuilder.Mediator.Playground.Behaviors;
 using EvoTechBuilder.Mediator.Playground.Handlers;
+using EvoTechBuilder.Mediator.Playground.Notifications;
 using EvoTechBuilder.Mediator.Playground.Request;
 
 using Microsoft.Extensions.DependencyInjection;
 
 var services = new ServiceCollection();
 
+services.AddTransient<
+    INotificationHandler<CustomerCreatedNotification>,
+    SendWelcomeEmailHandler>();
+
+services.AddTransient<
+    INotificationHandler<CustomerCreatedNotification>,
+    UpdateCustomerStatisticsHandler>();
+
 services.AddTransient<IRequestHandler<GetCustomerQuery, Customer>, GetCustomerHandler>()
     .AddTransient<ISender, Mediator>()
+    .AddTransient<IPublisher, Mediator>()
     .AddTransient<IRequestHandler<CreateCustomerCommand>, CreateCustomerHandler>()
     .AddTransient(typeof(IPipelineBehavior<>), typeof(LoggingBehavior<>))
     .AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
@@ -38,4 +48,18 @@ try
 catch (OperationCanceledException)
 {
     Console.WriteLine("Request cancelled.");
+}
+
+var publisher = serviceProvider.GetRequiredService<IPublisher>();
+
+try
+{
+    await publisher.Publish(
+        new CustomerCreatedNotification(Guid.NewGuid()));
+
+    Console.WriteLine("[Publisher] Completed");
+}
+catch (Exception exception)
+{
+    Console.WriteLine($"[Publisher] Failed: {exception.Message}");
 }

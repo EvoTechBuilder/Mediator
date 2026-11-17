@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 using EvoTechBuilder.Mediator.Abstractions.Contracts;
 using EvoTechBuilder.Mediator.Internal;
 
@@ -16,13 +14,28 @@ public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
     /// <inheritdoc />
     public ValueTask Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification
     {
-        throw new NotImplementedException();
+        ArgumentNullException.ThrowIfNull(notification);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var handlers = serviceProvider
+            .GetServices<INotificationHandler<TNotification>>()
+            .ToArray();
+
+        var tasks = handlers
+        .Select(handler => InvokeHandler(
+            handler,
+            notification,
+            cancellationToken))
+        .ToArray();
+        
+        return new ValueTask(Task.WhenAll(tasks));
     }
-    
+
     /// <inheritdoc />
     public ValueTask Send<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest
     {
         ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var wrapperType = typeof(RequestHandlerWrapper<>)
             .MakeGenericType(typeof(TRequest));
@@ -35,12 +48,13 @@ public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
             serviceProvider,
             cancellationToken);
     }
-    
+
     /// <inheritdoc />
     public ValueTask<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        
+        cancellationToken.ThrowIfCancellationRequested();
+
         var wrapperType = typeof(RequestHandlerWrapper<,>)
             .MakeGenericType(request.GetType(), typeof(TResponse));
 
@@ -52,4 +66,15 @@ public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
             serviceProvider,
             cancellationToken);
     }
+    
+    #region Private Methods
+    private static async Task InvokeHandler<TNotification>(
+        INotificationHandler<TNotification> handler,
+        TNotification notification,
+        CancellationToken cancellationToken)
+        where TNotification : INotification
+    {
+        await handler.Handle(notification, cancellationToken);
+    }
+    #endregion
 }
