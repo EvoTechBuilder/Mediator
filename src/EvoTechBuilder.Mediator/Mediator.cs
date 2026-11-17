@@ -13,6 +13,7 @@ namespace EvoTechBuilder.Mediator;
 /// </summary>
 public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
 {
+    /// <inheritdoc />
     public ValueTask Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification
     {
         throw new NotImplementedException();
