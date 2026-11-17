@@ -1,5 +1,3 @@
-using EvoTechBuilder.Mediator.Abstractions.Contracts.Delegates;
-
 namespace EvoTechBuilder.Mediator.Abstractions.Contracts;
 
 /// <summary>

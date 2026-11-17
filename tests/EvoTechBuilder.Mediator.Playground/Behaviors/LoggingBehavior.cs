@@ -1,7 +1,6 @@
 using EvoTechBuilder.Mediator.Abstractions.Contracts;
-using EvoTechBuilder.Mediator.Abstractions.Contracts.Delegates;
 
-namespace EvoTechBuilder.Mediator.Playground;
+namespace EvoTechBuilder.Mediator.Playground.Behaviors;
 
 /// <inheritdoc />
 public sealed class LoggingBehavior<TRequest, TResponse>

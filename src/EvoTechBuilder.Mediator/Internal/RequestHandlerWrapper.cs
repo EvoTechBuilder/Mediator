@@ -1,5 +1,4 @@
 using EvoTechBuilder.Mediator.Abstractions.Contracts;
-using EvoTechBuilder.Mediator.Abstractions.Contracts.Delegates;
 
 using Microsoft.Extensions.DependencyInjection;
 

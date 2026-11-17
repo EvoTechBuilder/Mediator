@@ -1,4 +1,4 @@
-namespace EvoTechBuilder.Mediator.Abstractions.Contracts.Delegates;
+namespace EvoTechBuilder.Mediator.Abstractions.Contracts;
 
 /// <summary>
 /// Represents the next component in the request processing pipeline.
