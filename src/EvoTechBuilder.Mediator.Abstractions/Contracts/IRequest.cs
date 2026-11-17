@@ -11,6 +11,6 @@ public interface IRequest {}
 /// <typeparam name="TResponse">
 /// The type of the response expected from the request.
 /// </typeparam>
-public interface IRequest<TResponse> : IRequest
+public interface IRequest<TResponse>
 {
 }
