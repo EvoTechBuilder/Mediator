@@ -83,3 +83,26 @@ catch (AggregateException exception)
             $"[Publisher] Handler failed: {innerException.Message}");
     }
 }
+var validator = new MediatorOptionsValidator();
+
+var validOptions = new MediatorOptions
+{
+    NotificationExecution = NotificationExecution.Parallel,
+    MaxConcurrentHandlers = 5
+};
+
+var invalidOptions = new MediatorOptions
+{
+    NotificationExecution = (NotificationExecution)999
+};
+
+var validResult = validator.Validate(null, validOptions);
+var invalidResult = validator.Validate(null, invalidOptions);
+
+Console.WriteLine($"Valid: {validResult.Succeeded}");
+Console.WriteLine($"Invalid: {invalidResult.Succeeded}");
+
+foreach (var failure in invalidResult.Failures ?? [])
+{
+    Console.WriteLine(failure);
+}
