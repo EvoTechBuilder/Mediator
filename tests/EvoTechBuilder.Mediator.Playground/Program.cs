@@ -17,7 +17,8 @@ var services = new ServiceCollection();
 services.AddSingleton<IOptions<MediatorOptions>>(
     Options.Create(new MediatorOptions
     {
-        NotificationExecution = NotificationExecution.Sequential
+        NotificationExecution = NotificationExecution.Parallel,
+        MaxConcurrentHandlers = 10
     }));
 
 services.AddTransient<

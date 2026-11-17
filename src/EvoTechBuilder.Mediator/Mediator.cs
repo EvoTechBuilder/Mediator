@@ -1,4 +1,4 @@
-using System.Runtime.ExceptionServices;
+using System.Collections.Concurrent;
 
 using EvoTechBuilder.Mediator.Abstractions.Contracts;
 using EvoTechBuilder.Mediator.Abstractions.Enums;
@@ -49,30 +49,7 @@ public class Mediator(
             return;
         }
 
-        var tasks = handlers
-            .Select(handler => InvokeHandler(
-                handler,
-                notification,
-                cancellationToken))
-            .ToArray();
-
-        var task = Task.WhenAll(tasks);
-
-        try
-        {
-            await task;
-        }
-        catch
-        {
-            if (task.Exception is { } aggregateException)
-            {
-                ExceptionDispatchInfo
-                    .Capture(aggregateException)
-                    .Throw();
-            }
-
-            throw;
-        }
+        await PublishInParallel(handlers, notification, _options.MaxConcurrentHandlers, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -112,6 +89,66 @@ public class Mediator(
     }
 
     #region Private Methods
+    private static async ValueTask PublishInParallel<TNotification>(
+        INotificationHandler<TNotification>[] handlers,
+        TNotification notification,
+        uint maxCurrentHandlers,
+        CancellationToken cancellationToken)
+        where TNotification : INotification
+    {
+        if (handlers.Length == 0) return;
+        
+        var workerCount = maxCurrentHandlers == 0
+            ? handlers.Length
+            : (int)Math.Min(maxCurrentHandlers, (uint)handlers.Length);
+
+        var exceptions = new ConcurrentQueue<Exception>();
+        var nextIndex = -1;
+
+        var workers = new Task[workerCount];
+
+        for (var index = 0; index < workerCount; index++)
+        {
+            workers[index] = ProcessHandlers();
+        }
+
+        await Task.WhenAll(workers);
+
+        if (!exceptions.IsEmpty)
+        {
+            throw new AggregateException(exceptions);
+        }
+
+        async Task ProcessHandlers()
+        {
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var index = Interlocked.Increment(ref nextIndex);
+
+                if (index >= handlers.Length)
+                {
+                    return;
+                }
+
+                try
+                {
+                    await handlers[index].Handle(notification, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                    when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    exceptions.Enqueue(exception);
+                }
+            }
+        }
+    }
+
     private static async ValueTask PublishSequentially<TNotification>(
         IEnumerable<INotificationHandler<TNotification>> handlers,
         TNotification notification,
