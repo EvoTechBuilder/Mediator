@@ -22,7 +22,7 @@ public interface IRequestHandler<TRequest, TResponse> where TRequest : IRequest<
     /// A <see cref="ValueTask{TResult}"/> representing the asynchronous operation
     /// and containing the response.
     /// </returns>
-    ValueTask<TResponse> Handle(TRequest request, CancellationToken cancellation);
+    ValueTask<TResponse> Handle(TRequest request, CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -36,9 +36,9 @@ public interface IRequestHandler<TRequest> where TRequest : IRequest {
     /// Handles the specified request asynchronously and returns a <see cref="ValueTask"/> representing the operation.
     /// </summary>
     /// <param name="request">The request to process.</param>
-    /// <param name="cancellation">
+    /// <param name="cancellationToken">
     /// A token that can be used to cancel the operation.
     /// </param>
     /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
-    ValueTask Handle(TRequest request, CancellationToken cancellation);
+    ValueTask Handle(TRequest request, CancellationToken cancellationToken);
 }

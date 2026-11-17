@@ -20,7 +20,7 @@ public interface ISender
     /// </returns>
     ValueTask Send<TRequest>(
         TRequest request,
-        CancellationToken cancellation = default)
+        CancellationToken cancellationToken = default)
         where TRequest : IRequest;
 
     /// <summary>
@@ -39,6 +39,6 @@ public interface ISender
     /// </returns>
     ValueTask<TResponse> Send<TRequest, TResponse>(
         TRequest request,
-        CancellationToken cancellation = default)
+        CancellationToken cancellationToken = default)
         where TRequest : IRequest<TResponse>;
 }
