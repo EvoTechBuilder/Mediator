@@ -27,3 +27,14 @@ internal interface IRequestHandlerWrapper<TResponse>
         IServiceProvider serviceProvider,
         CancellationToken cancellationToken);
 }
+
+/// <summary>
+/// Defines a wrapper for requests that do not produce a response.
+/// </summary>
+internal interface IRequestHandlerWrapper
+{
+    ValueTask Handle(
+        object request,
+        IServiceProvider serviceProvider,
+        CancellationToken cancellationToken);
+}

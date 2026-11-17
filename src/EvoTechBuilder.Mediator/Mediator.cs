@@ -23,10 +23,17 @@ public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
     public ValueTask Send<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest
     {
         ArgumentNullException.ThrowIfNull(request);
-        
-        var handler = serviceProvider.GetRequiredService<IRequestHandler<TRequest>>();
-        
-        return handler.Handle(request, cancellationToken);
+
+        var wrapperType = typeof(RequestHandlerWrapper<>)
+            .MakeGenericType(typeof(TRequest));
+
+        var wrapper = (IRequestHandlerWrapper)
+            Activator.CreateInstance(wrapperType, nonPublic: true)!;
+
+        return wrapper.Handle(
+            request,
+            serviceProvider,
+            cancellationToken);
     }
     
     /// <inheritdoc />

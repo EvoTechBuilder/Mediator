@@ -47,3 +47,43 @@ internal sealed class RequestHandlerWrapper<TRequest, TResponse>
         return next();
     }
 }
+
+/// <summary>
+/// Wraps the execution of a request handler with its registered pipeline behaviors.
+/// </summary>
+internal sealed class RequestHandlerWrapper<TRequest>
+    : IRequestHandlerWrapper
+    where TRequest : IRequest
+{
+    /// <inheritdoc />
+    public ValueTask Handle(
+        object request,
+        IServiceProvider serviceProvider,
+        CancellationToken cancellationToken)
+    {
+        var typedRequest = (TRequest)request;
+
+        var handler = serviceProvider
+            .GetRequiredService<IRequestHandler<TRequest>>();
+
+        var behaviors = serviceProvider
+            .GetServices<IPipelineBehavior<TRequest>>()
+            .ToArray();
+
+        RequestHandlerDelegate next = () =>
+            handler.Handle(typedRequest, cancellationToken);
+
+        for (var index = behaviors.Length - 1; index >= 0; index--)
+        {
+            var currentBehavior = behaviors[index];
+            var currentNext = next;
+
+            next = () => currentBehavior.Handle(
+                typedRequest,
+                currentNext,
+                cancellationToken);
+        }
+
+        return next();
+    }
+}
