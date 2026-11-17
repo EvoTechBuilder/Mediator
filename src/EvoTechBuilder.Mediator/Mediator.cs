@@ -118,13 +118,13 @@ public class Mediator(
         {
             throw new AggregateException(exceptions);
         }
+        
+        cancellationToken.ThrowIfCancellationRequested();
 
         async Task ProcessHandlers()
         {
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 var index = Interlocked.Increment(ref nextIndex);
 
                 if (index >= handlers.Length)
@@ -139,7 +139,7 @@ public class Mediator(
                 catch (OperationCanceledException)
                     when (cancellationToken.IsCancellationRequested)
                 {
-                    throw;
+                    return;
                 }
                 catch (Exception exception)
                 {
@@ -159,7 +159,10 @@ public class Mediator(
 
         foreach (var handler in handlers)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
 
             try
             {
@@ -180,6 +183,8 @@ public class Mediator(
         {
             throw new AggregateException(exceptions);
         }
+        
+        cancellationToken.ThrowIfCancellationRequested();
     }
 
     private static async Task InvokeHandler<TNotification>(
