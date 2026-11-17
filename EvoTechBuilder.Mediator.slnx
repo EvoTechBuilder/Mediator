@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="Solution Items">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  
+  <Folder Name="src">
+    <Project Path="src/EvoTechBuilder.Mediator.Abstractions/EvoTechBuilder.Mediator.Abstractions.csproj" />
+    <Project Path="src/EvoTechBuilder.Mediator/EvoTechBuilder.Mediator.csproj" />
+    <Project Path="src/EvoTechBuilder.Mediator.DependencyInjection/EvoTechBuilder.Mediator.DependencyInjection.csproj" />
+  </Folder>
+  <Folder Name="tests">
+    
+  </Folder>
+</Solution>

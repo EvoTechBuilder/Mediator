@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    
+    <Authors>Evo Tech Builder</Authors>
+    <Company>Evo Tech Builder</Company>
+    
+    <Description>
+      Lightweight in-process mediator implementation for .NET.
+    </Description>
+    
+    <PackageTags>mediator;messaging;dotnet;cqrs</PackageTags>
+  </PropertyGroup>
+</Project>
