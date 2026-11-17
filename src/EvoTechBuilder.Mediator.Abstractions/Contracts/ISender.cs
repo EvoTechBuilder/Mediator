@@ -37,8 +37,7 @@ public interface ISender
     /// A <see cref="ValueTask{TResult}"/> representing the asynchronous dispatch operation
     /// and containing the handler response.
     /// </returns>
-    ValueTask<TResponse> Send<TRequest, TResponse>(
-        TRequest request,
-        CancellationToken cancellationToken = default)
-        where TRequest : IRequest<TResponse>;
+    ValueTask<TResponse> Send<TResponse>(
+        IRequest<TResponse> request,
+        CancellationToken cancellationToken = default);
 }
