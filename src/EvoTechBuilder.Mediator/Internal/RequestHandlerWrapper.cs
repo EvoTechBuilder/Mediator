@@ -1,4 +1,5 @@
 using EvoTechBuilder.Mediator.Abstractions.Contracts;
+using EvoTechBuilder.Mediator.Abstractions.Contracts.Delegates;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,11 +22,29 @@ internal sealed class RequestHandlerWrapper<TRequest, TResponse>
     /// <inheritdoc />
     public ValueTask<TResponse> Handle(object request, IServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
+        var typedRequest = (TRequest)request;
+
         var handler = serviceProvider
             .GetRequiredService<IRequestHandler<TRequest, TResponse>>();
 
-        return handler.Handle(
-            (TRequest)request,
-            cancellationToken);
+        var behaviors = serviceProvider
+            .GetServices<IPipelineBehavior<TRequest, TResponse>>()
+            .ToArray();
+
+        RequestHandlerDelegate<TResponse> next = () => handler.Handle(typedRequest, cancellationToken);
+        
+        for (var index = behaviors.Length -1; index >= 0; index--)
+        {
+            var currentBehavior = behaviors[index];
+            var currentNext = next;
+            
+            next = () => currentBehavior.Handle(
+                typedRequest,
+                currentNext,
+                cancellationToken
+            );
+        }
+        
+        return next();
     }
 }
