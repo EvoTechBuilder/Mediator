@@ -10,13 +10,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 var services = new ServiceCollection();
 
-services.AddTransient<
-    INotificationHandler<CustomerCreatedNotification>,
-    SendWelcomeEmailHandler>();
+// services.AddTransient<
+//     INotificationHandler<CustomerCreatedNotification>,
+//     SendWelcomeEmailHandler>();
 
-services.AddTransient<
-    INotificationHandler<CustomerCreatedNotification>,
-    UpdateCustomerStatisticsHandler>();
+// services.AddTransient<
+//     INotificationHandler<CustomerCreatedNotification>,
+//     UpdateCustomerStatisticsHandler>();
 
 services.AddTransient<IRequestHandler<GetCustomerQuery, Customer>, GetCustomerHandler>()
     .AddTransient<ISender, Mediator>()
@@ -58,6 +58,10 @@ try
         new CustomerCreatedNotification(Guid.NewGuid()));
 
     Console.WriteLine("[Publisher] Completed");
+}
+catch (InvalidOperationException exception)
+{
+    Console.WriteLine($"[Publisher] Configuration error: {exception.Message}");
 }
 catch (AggregateException exception)
 {

@@ -20,6 +20,12 @@ public class Mediator(IServiceProvider serviceProvider) : ISender, IPublisher
         var handlers = serviceProvider
             .GetServices<INotificationHandler<TNotification>>()
             .ToArray();
+            
+        if (handlers.Length == 0) {
+            throw new InvalidOperationException(
+                $"No notification handlers registered for '{typeof(TNotification).FullName}'"
+            );
+        }
 
         var tasks = handlers
         .Select(handler => InvokeHandler(
