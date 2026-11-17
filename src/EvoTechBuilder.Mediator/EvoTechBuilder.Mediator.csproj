@@ -11,4 +11,9 @@
     
     <PackageTags>mediator;messaging;dotnet;cqrs</PackageTags>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EvoTechBuilder.Mediator.Abstractions\EvoTechBuilder.Mediator.Abstractions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
 </Project>
