@@ -38,3 +38,35 @@ public interface IPipelineBehavior<in TRequest, TResponse>
         CancellationToken cancellationToken);
 
 }
+
+/// <summary>
+/// Defines a behavior that can execute logic before and after
+/// the processing of a request that does not produce a response.
+/// </summary>
+/// <typeparam name="TRequest">
+/// The type of the request being processed.
+/// </typeparam>
+public interface IPipelineBehavior<in TRequest>
+    where TRequest : IRequest
+{
+    /// <summary>
+    /// Executes the behavior and delegates request processing
+    /// to the next component in the pipeline.
+    /// </summary>
+    /// <param name="request">
+    /// The request being processed.
+    /// </param>
+    /// <param name="next">
+    /// A delegate that invokes the next behavior or request handler.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A token that can be used to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="ValueTask"/> representing the asynchronous operation.
+    /// </returns>
+    ValueTask Handle(
+        TRequest request,
+        RequestHandlerDelegate next,
+        CancellationToken cancellationToken);
+}
