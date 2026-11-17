@@ -7,7 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 var services = new ServiceCollection();
 
 services.AddTransient<IRequestHandler<GetCustomerQuery, Customer>, GetCustomerHandler>()
-    .AddTransient<ISender, Mediator>();
+    .AddTransient<ISender, Mediator>()
+    .AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
 var serviceProvider = services.BuildServiceProvider();
 
