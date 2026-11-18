@@ -1,5 +1,6 @@
 using EvoTechBuilder.Mediator.Abstractions.Contracts;
 using EvoTechBuilder.Mediator.Abstractions.Options;
+using EvoTechBuilder.Mediator.DependencyInjection.Internal;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -31,14 +32,14 @@ public static class MediatorServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         var builderOptions = new MediatorBuilderOptions();
-        
+
         options?.Invoke(builderOptions);
-        
+
         if (builderOptions.IsAutoRegisterEnabled)
         {
-            throw new NotImplementedException();
+            MediatorServiceRegister.Register(services);
         }
-        
+
         services.AddOptions<MediatorOptions>()
             .Configure(configure =>
             {
