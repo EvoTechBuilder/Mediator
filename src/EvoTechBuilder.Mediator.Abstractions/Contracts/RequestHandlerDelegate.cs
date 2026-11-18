@@ -10,7 +10,8 @@ namespace EvoTechBuilder.Mediator.Abstractions.Contracts;
 /// A <see cref="ValueTask{TResult}"/> representing the asynchronous operation
 /// and containing the response.
 /// </returns>
-public delegate ValueTask<TResponse> RequestHandlerDelegate<TResponse>();
+public delegate ValueTask<TResponse> RequestHandlerDelegate<TResponse>(
+    CancellationToken cancellationToken = default);
 
 /// <summary>
 /// Represents the next component in the request processing pipeline.
@@ -18,4 +19,5 @@ public delegate ValueTask<TResponse> RequestHandlerDelegate<TResponse>();
 /// <returns>
 /// A <see cref="ValueTask"/> representing the asynchronous operation.
 /// </returns>
-public delegate ValueTask RequestHandlerDelegate();
+public delegate ValueTask RequestHandlerDelegate(
+    CancellationToken cancellationToken = default);
