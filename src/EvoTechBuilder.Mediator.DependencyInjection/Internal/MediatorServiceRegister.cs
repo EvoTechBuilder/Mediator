@@ -18,13 +18,17 @@ internal static class MediatorServiceRegister
     /// <param name="services">
     /// The service collection.
     /// </param>
-    public static void Register(IServiceCollection services)
+    /// <param name="assemblies">
+    /// The assemblies to scan for mediator components.
+    /// </param>
+    public static void Register(IServiceCollection services, IEnumerable<Assembly> assemblies)
     {
         ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(assemblies);
 
-        var registrations = AppDomain.CurrentDomain
-            .GetAssemblies()
+        var registrations = assemblies
             .Where(assembly => !assembly.IsDynamic)
+            .Distinct()
             .SelectMany(GetLoadableTypes)
             .Where(IsDiscoverableType)
             .SelectMany(GetRegistrations)

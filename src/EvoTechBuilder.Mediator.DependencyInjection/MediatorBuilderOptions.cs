@@ -11,17 +11,15 @@ public sealed class MediatorBuilderOptions
 {
     private readonly HashSet<Assembly> _assemblies = [];
 
-    internal IReadOnlyCollection<Assembly> Assemblies => _assemblies;
-
     /// <summary>
     /// Gets the Mediator execution options.
     /// </summary>
     public MediatorOptions MediatorOptions { get; } = new();
 
     /// <summary>
-    /// Gets whether automatic component registration is enabled.
+    /// Gets the assemblies selected for automatic component registration.
     /// </summary>
-    public bool IsAutoRegisterEnabled { get; private set; }
+    internal IReadOnlyCollection<Assembly> Assemblies => _assemblies;
 
     /// <summary>
     /// Adds the assembly containing the specified marker type to automatic registration.

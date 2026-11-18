@@ -14,7 +14,12 @@ var services = new ServiceCollection();
 
 services.AddMediator(options =>
 {
-    options.MaxConcurrentHandlers = 1;
+    options.AutoRegisterFromAssembly(typeof(Program).Assembly);
+    
+    options.MediatorOptions.NotificationExecution =
+        NotificationExecution.Parallel;
+
+    options.MediatorOptions.MaxConcurrentHandlers = 5;
 });
 
 using var serviceProvider = services.BuildServiceProvider(

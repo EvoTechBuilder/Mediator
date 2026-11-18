@@ -35,9 +35,11 @@ public static class MediatorServiceCollectionExtensions
 
         options?.Invoke(builderOptions);
 
-        if (builderOptions.IsAutoRegisterEnabled)
+        if (builderOptions.Assemblies.Count > 0)
         {
-            MediatorServiceRegister.Register(services);
+            MediatorServiceRegister.Register(
+                services,
+                builderOptions.Assemblies);
         }
 
         services.AddOptions<MediatorOptions>()
