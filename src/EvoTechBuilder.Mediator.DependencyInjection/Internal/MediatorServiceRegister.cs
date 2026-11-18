@@ -26,15 +26,8 @@ internal static class MediatorServiceRegister
             .GetAssemblies()
             .Where(assembly => !assembly.IsDynamic)
             .SelectMany(GetLoadableTypes)
-            .Where(IsConcreteType)
-            .SelectMany(implementationType =>
-                implementationType.GetInterfaces()
-                    .Where(IsMediatorComponent)
-                    .Select(serviceType => new
-                    {
-                        ServiceType = serviceType,
-                        ImplementationType = implementationType
-                    }))
+            .Where(IsDiscoverableType)
+            .SelectMany(GetRegistrations)
             .OrderBy(
                 registration => registration.ServiceType.FullName,
                 StringComparer.Ordinal)
@@ -42,13 +35,61 @@ internal static class MediatorServiceRegister
                 registration => registration.ImplementationType.FullName,
                 StringComparer.Ordinal);
 
-        foreach (var registration in registrations)
+        foreach (var (serviceType, implementationType) in registrations)
         {
             services.TryAddEnumerable(
                 ServiceDescriptor.Scoped(
-                    registration.ServiceType,
-                    registration.ImplementationType));
+                    serviceType,
+                    implementationType));
         }
+    }
+
+    private static IEnumerable<(Type ServiceType, Type ImplementationType)>
+        GetRegistrations(Type implementationType)
+    {
+        foreach (var serviceType in implementationType.GetInterfaces())
+        {
+            if (!IsMediatorComponent(serviceType))
+            {
+                continue;
+            }
+
+            if (implementationType.IsGenericTypeDefinition)
+            {
+                if (!serviceType.ContainsGenericParameters)
+                {
+                    continue;
+                }
+
+                var implementationArguments =
+                    implementationType.GetGenericArguments();
+
+                var serviceArguments =
+                    serviceType.GetGenericArguments();
+
+                if (implementationArguments.Length != serviceArguments.Length ||
+                    !implementationArguments.SequenceEqual(serviceArguments))
+                {
+                    continue;
+                }
+
+                yield return (
+                    serviceType.GetGenericTypeDefinition(),
+                    implementationType);
+
+                continue;
+            }
+
+            if (!implementationType.ContainsGenericParameters)
+            {
+                yield return (serviceType, implementationType);
+            }
+        }
+    }
+
+    private static bool IsDiscoverableType(Type type)
+    {
+        return type.IsClass && !type.IsAbstract;
     }
 
     private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
@@ -61,13 +102,6 @@ internal static class MediatorServiceRegister
         {
             return exception.Types.OfType<Type>();
         }
-    }
-
-    private static bool IsConcreteType(Type type)
-    {
-        return type.IsClass
-            && !type.IsAbstract
-            && !type.ContainsGenericParameters;
     }
 
     private static bool IsMediatorComponent(Type serviceType)
