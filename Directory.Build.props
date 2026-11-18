@@ -15,8 +15,14 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/EvoTechBuilder/Mediator</RepositoryUrl>
 
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageTags>mediator;mediatr;messaging;dotnet;cqrs</PackageTags>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)LICENSE"
+          Pack="true"
+          PackagePath="\" />
+  </ItemGroup>
 </Project>
