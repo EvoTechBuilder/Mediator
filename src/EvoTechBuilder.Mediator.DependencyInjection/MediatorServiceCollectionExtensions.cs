@@ -19,25 +19,36 @@ public static class MediatorServiceCollectionExtensions
     /// The service collection.
     /// </param>
     /// <param name="options">
-    /// An optional delegate to configure Mediator options.
+    ///  An optional delegate to configure Mediator registration options.
     /// </param>
     /// <returns>
     /// The service collection for chaining registrations.
     /// </returns>
     public static IServiceCollection AddMediator(
         this IServiceCollection services,
-        Action<MediatorOptions>? options = null)
+        Action<MediatorBuilderOptions>? options = null)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        var optionsBuilder = services.AddOptions<MediatorOptions>();
-
-        if (options is not null)
+        var builderOptions = new MediatorBuilderOptions();
+        
+        options?.Invoke(builderOptions);
+        
+        if (builderOptions.IsAutoRegisterEnabled)
         {
-            optionsBuilder.Configure(options);
+            throw new NotImplementedException();
         }
+        
+        services.AddOptions<MediatorOptions>()
+            .Configure(configure =>
+            {
+                configure.NotificationExecution =
+                    builderOptions.MediatorOptions.NotificationExecution;
 
-        optionsBuilder.ValidateOnStart();
+                configure.MaxConcurrentHandlers =
+                    builderOptions.MediatorOptions.MaxConcurrentHandlers;
+            })
+            .ValidateOnStart();
 
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<
