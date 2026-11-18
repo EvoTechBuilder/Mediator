@@ -1,3 +1,5 @@
+using System.Reflection;
+
 using EvoTechBuilder.Mediator.Abstractions.Options;
 
 namespace EvoTechBuilder.Mediator.DependencyInjection;
@@ -7,6 +9,10 @@ namespace EvoTechBuilder.Mediator.DependencyInjection;
 /// </summary>
 public sealed class MediatorBuilderOptions
 {
+    private readonly HashSet<Assembly> _assemblies = [];
+
+    internal IReadOnlyCollection<Assembly> Assemblies => _assemblies;
+
     /// <summary>
     /// Gets the Mediator execution options.
     /// </summary>
@@ -18,10 +24,37 @@ public sealed class MediatorBuilderOptions
     public bool IsAutoRegisterEnabled { get; private set; }
 
     /// <summary>
-    /// Enables automatic discovery and registration of Mediator components.
+    /// Adds the assembly containing the specified marker type to automatic registration.
     /// </summary>
-    public void AutoRegister()
+    /// <typeparam name="TAssembly">
+    /// A type used to identify the assembly to scan.
+    /// </typeparam>
+    public void AutoRegisterFromAssembly<TAssembly>()
     {
-        IsAutoRegisterEnabled = true;
+        AutoRegisterFromAssembly(typeof(TAssembly).Assembly);
+    }
+
+    /// <summary>
+    /// Adds the specified assembly to automatic registration.
+    /// </summary>
+    /// <param name="assembly">The assembly to scan for mediator components.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="assembly"/> is null.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown when the specified assembly is dynamic.
+    /// </exception>
+    public void AutoRegisterFromAssembly(Assembly assembly)
+    {
+        ArgumentNullException.ThrowIfNull(assembly);
+
+        if (assembly.IsDynamic)
+        {
+            throw new ArgumentException(
+                "Dynamic assemblies cannot be scanned.",
+                nameof(assembly));
+        }
+
+        _assemblies.Add(assembly);
     }
 }
