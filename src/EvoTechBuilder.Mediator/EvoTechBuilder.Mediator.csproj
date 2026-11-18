@@ -1,18 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageId>EvoTechBuilder.Mediator</PackageId>
-    <Version>1.0.0</Version>
-    
-    <Authors>Evo Tech Builder</Authors>
-    <Company>Evo Tech Builder</Company>
-    
     <Description>
       Lightweight in-process mediator implementation for .NET.
     </Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>mediator;messaging;dotnet;cqrs</PackageTags>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\EvoTechBuilder.Mediator.Abstractions\EvoTechBuilder.Mediator.Abstractions.csproj" />
