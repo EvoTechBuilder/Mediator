@@ -102,15 +102,13 @@ public class Mediator(
     private static async ValueTask PublishInParallel<TNotification>(
         INotificationHandler<TNotification>[] handlers,
         TNotification notification,
-        uint maxCurrentHandlers,
+        uint maxConcurrentHandlers,
         CancellationToken cancellationToken)
         where TNotification : INotification
     {
-        if (handlers.Length == 0) return;
-
-        var workerCount = maxCurrentHandlers == 0
+        var workerCount = maxConcurrentHandlers == 0
             ? handlers.Length
-            : (int)Math.Min(maxCurrentHandlers, (uint)handlers.Length);
+            : (int)Math.Min(maxConcurrentHandlers, (uint)handlers.Length);
 
         var exceptions = new ConcurrentQueue<Exception>();
         var nextIndex = -1;
@@ -181,7 +179,7 @@ public class Mediator(
             catch (OperationCanceledException)
                 when (cancellationToken.IsCancellationRequested)
             {
-                throw;
+                break;
             }
             catch (Exception exception)
             {
@@ -196,5 +194,6 @@ public class Mediator(
 
         cancellationToken.ThrowIfCancellationRequested();
     }
+
     #endregion
 }
