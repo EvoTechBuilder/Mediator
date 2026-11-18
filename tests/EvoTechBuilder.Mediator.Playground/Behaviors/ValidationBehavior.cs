@@ -17,6 +17,6 @@ public sealed class ValidationBehavior<TRequest, TResponse>
     {
         Console.WriteLine($"[Validation] Validating {typeof(TRequest).Name}");
 
-        return await next();
+        return await next(cancellationToken);
     }
 }

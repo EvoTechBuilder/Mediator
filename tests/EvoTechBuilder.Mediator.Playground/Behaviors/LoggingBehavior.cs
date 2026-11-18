@@ -17,7 +17,7 @@ public sealed class LoggingBehavior<TRequest>
 
         Console.WriteLine($"[Before] Handling {typeof(TRequest).Name}");
 
-        await next();
+        await next(cancellationToken);
 
         Console.WriteLine($"[After] Handled {typeof(TRequest).Name}");
     }
@@ -38,7 +38,7 @@ public sealed class LoggingBehavior<TRequest, TResponse>
 
         Console.WriteLine($"[Before] Handling {typeof(TRequest).Name}");
 
-        var response = await next();
+        var response = await next(cancellationToken);
 
         Console.WriteLine($"[After] Handled {typeof(TRequest).Name}");
 

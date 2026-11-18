@@ -71,7 +71,7 @@ internal sealed class RequestHandlerWrapper<TRequest, TResponse>
                 token);
         }
 
-        return next();
+        return next(cancellationToken);
     }
 }
 
