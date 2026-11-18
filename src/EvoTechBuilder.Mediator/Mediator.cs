@@ -18,6 +18,7 @@ public class Mediator(
     IServiceProvider serviceProvider,
     IOptions<MediatorOptions> options) : ISender, IPublisher
 {
+    private static readonly ConcurrentDictionary<Type, Lazy<object>> WrapperCache = new();
     private readonly MediatorOptions _options = options.Value;
 
     /// <inheritdoc />
@@ -61,8 +62,7 @@ public class Mediator(
         var wrapperType = typeof(RequestHandlerWrapper<>)
             .MakeGenericType(typeof(TRequest));
 
-        var wrapper = (IRequestHandlerWrapper)
-            Activator.CreateInstance(wrapperType, nonPublic: true)!;
+        var wrapper = (IRequestHandlerWrapper)GetWrapper(wrapperType);
 
         return wrapper.Handle(
             request,
@@ -80,7 +80,7 @@ public class Mediator(
             .MakeGenericType(request.GetType(), typeof(TResponse));
 
         var wrapper = (IRequestHandlerWrapper<TResponse>)
-            Activator.CreateInstance(wrapperType, nonPublic: true)!;
+            GetWrapper(wrapperType);
 
         return wrapper.Handle(
             request,
@@ -89,6 +89,16 @@ public class Mediator(
     }
 
     #region Private Methods
+    private static object GetWrapper(Type wrapperType)
+    {
+        return WrapperCache.GetOrAdd(
+            wrapperType,
+            static type => new Lazy<object>(
+                () => Activator.CreateInstance(type, nonPublic: true)!,
+                LazyThreadSafetyMode.ExecutionAndPublication))
+            .Value;
+    }
+
     private static async ValueTask PublishInParallel<TNotification>(
         INotificationHandler<TNotification>[] handlers,
         TNotification notification,
@@ -97,7 +107,7 @@ public class Mediator(
         where TNotification : INotification
     {
         if (handlers.Length == 0) return;
-        
+
         var workerCount = maxCurrentHandlers == 0
             ? handlers.Length
             : (int)Math.Min(maxCurrentHandlers, (uint)handlers.Length);
@@ -118,7 +128,7 @@ public class Mediator(
         {
             throw new AggregateException(exceptions);
         }
-        
+
         cancellationToken.ThrowIfCancellationRequested();
 
         async Task ProcessHandlers()
@@ -183,17 +193,8 @@ public class Mediator(
         {
             throw new AggregateException(exceptions);
         }
-        
-        cancellationToken.ThrowIfCancellationRequested();
-    }
 
-    private static async Task InvokeHandler<TNotification>(
-        INotificationHandler<TNotification> handler,
-        TNotification notification,
-        CancellationToken cancellationToken)
-        where TNotification : INotification
-    {
-        await handler.Handle(notification, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
     }
     #endregion
 }
