@@ -3,10 +3,7 @@ using EvoTechBuilder.Mediator.Abstractions.Contracts;
 using EvoTechBuilder.Mediator.Abstractions.Enums;
 using EvoTechBuilder.Mediator.DependencyInjection;
 using EvoTechBuilder.Mediator.Playground;
-using EvoTechBuilder.Mediator.Playground.Behaviors;
-using EvoTechBuilder.Mediator.Playground.Handlers;
 using EvoTechBuilder.Mediator.Playground.Notifications;
-using EvoTechBuilder.Mediator.Playground.Request;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,8 +11,9 @@ var services = new ServiceCollection();
 
 services.AddMediator(options =>
 {
-    options.AutoRegisterFromAssembly(typeof(Program).Assembly);
-    
+    // Discover Mediator components from the current assembly.
+    options.AutoRegisterFromAssembly<Program>();
+
     options.MediatorOptions.NotificationExecution =
         NotificationExecution.Parallel;
 
@@ -37,9 +35,13 @@ var mediator = scopedProvider.GetRequiredService<Mediator>();
 var sender = scopedProvider.GetRequiredService<ISender>();
 var publisher = scopedProvider.GetRequiredService<IPublisher>();
 
-Console.WriteLine($"Same sender instance: {ReferenceEquals(mediator, sender)}");
-Console.WriteLine($"Same publisher instance: {ReferenceEquals(mediator, publisher)}");
+Console.WriteLine(
+    $"Same sender instance: {ReferenceEquals(mediator, sender)}");
 
+Console.WriteLine(
+    $"Same publisher instance: {ReferenceEquals(mediator, publisher)}");
+
+// Test request cancellation.
 using var cancellationTokenSource = new CancellationTokenSource();
 
 try
@@ -61,6 +63,7 @@ catch (OperationCanceledException)
     Console.WriteLine("Request cancelled.");
 }
 
+// Test notification publishing.
 try
 {
     await publisher.Publish(
