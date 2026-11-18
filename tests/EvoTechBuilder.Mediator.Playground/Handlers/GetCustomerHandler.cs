@@ -3,7 +3,7 @@ using EvoTechBuilder.Mediator.Abstractions.Contracts;
 namespace EvoTechBuilder.Mediator.Playground.Handlers;
 
 /// <inheritdoc />
-public sealed class GetCustomerHandler : IRequestHandler<GetCustomerQuery, Customer>
+public sealed class GetCustomerHandler : IHandler<GetCustomerQuery, Customer>
 {
     /// <inheritdoc />
     public async ValueTask<Customer> Handle(GetCustomerQuery request, CancellationToken cancellationToken)

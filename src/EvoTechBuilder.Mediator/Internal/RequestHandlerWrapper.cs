@@ -24,7 +24,7 @@ internal sealed class RequestHandlerWrapper<TRequest, TResponse>
         var typedRequest = (TRequest)request;
 
         var handler = serviceProvider
-            .GetRequiredService<IRequestHandler<TRequest, TResponse>>();
+            .GetRequiredService<IHandler<TRequest, TResponse>>();
 
         var behaviors = serviceProvider
             .GetServices<IPipelineBehavior<TRequest, TResponse>>()
@@ -64,7 +64,7 @@ internal sealed class RequestHandlerWrapper<TRequest>
         var typedRequest = (TRequest)request;
 
         var handler = serviceProvider
-            .GetRequiredService<IRequestHandler<TRequest>>();
+            .GetRequiredService<IHandler<TRequest>>();
 
         var behaviors = serviceProvider
             .GetServices<IPipelineBehavior<TRequest>>()

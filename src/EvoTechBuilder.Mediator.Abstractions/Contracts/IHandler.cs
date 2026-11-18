@@ -9,7 +9,7 @@ namespace EvoTechBuilder.Mediator.Abstractions.Contracts;
 /// <typeparam name="TResponse">
 /// The type of the response produced by the handler.
 /// </typeparam>
-public interface IRequestHandler<TRequest, TResponse> where TRequest : IRequest<TResponse>
+public interface IHandler<TRequest, TResponse> where TRequest : IRequest<TResponse>
 {
     /// <summary>
     /// Handles the specified request asynchronously.
@@ -31,7 +31,7 @@ public interface IRequestHandler<TRequest, TResponse> where TRequest : IRequest<
 /// <typeparam name="TRequest">
 /// The type of the request to be handled.
 /// </typeparam>
-public interface IRequestHandler<TRequest> where TRequest : IRequest {
+public interface IHandler<TRequest> where TRequest : IRequest {
     /// <summary>
     /// Handles the specified request asynchronously and returns a <see cref="ValueTask"/> representing the operation.
     /// </summary>

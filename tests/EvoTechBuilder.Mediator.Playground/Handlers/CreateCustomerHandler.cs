@@ -6,7 +6,7 @@ namespace EvoTechBuilder.Mediator.Playground.Handlers;
 /// <summary>
 /// Handles customer creation commands.
 /// </summary>
-public sealed class CreateCustomerHandler : IRequestHandler<CreateCustomerCommand>
+public sealed class CreateCustomerHandler : IHandler<CreateCustomerCommand>
 {
     /// <inheritdoc />
     public ValueTask Handle(CreateCustomerCommand request, CancellationToken cancellationToken)

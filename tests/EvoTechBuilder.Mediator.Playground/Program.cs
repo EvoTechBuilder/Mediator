@@ -17,30 +17,6 @@ services.AddMediator(options =>
     options.MaxConcurrentHandlers = 1;
 });
 
-services.AddTransient<
-    IRequestHandler<GetCustomerQuery, Customer>,
-    GetCustomerHandler>();
-
-services.AddTransient<
-    IRequestHandler<CreateCustomerCommand>,
-    CreateCustomerHandler>();
-
-services.AddTransient<
-    INotificationHandler<CustomerCreatedNotification>,
-    SendWelcomeEmailHandler>();
-
-services.AddTransient<
-    INotificationHandler<CustomerCreatedNotification>,
-    UpdateCustomerStatisticsHandler>();
-
-services.AddTransient(
-    typeof(IPipelineBehavior<>),
-    typeof(LoggingBehavior<>));
-
-services.AddTransient(
-    typeof(IPipelineBehavior<,>),
-    typeof(LoggingBehavior<,>));
-
 using var serviceProvider = services.BuildServiceProvider(
     new ServiceProviderOptions
     {
